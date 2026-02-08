@@ -1,51 +1,204 @@
 {
     "shelly_interface": {
         "name": "shelly_interface",
-        "display_name": "shelly-interface",
+        "display_name": "Shelly Interface",
         "type": "DEV",
         "visibility": "PUB",
         "allow_many": true,
         "description": "Allows other Doover apps to publish/receive configurable information to/from one or more Shelly products (including relays etc) connected to a doovit via wifi",
         "long_description": "README.md",
         "depends_on": [],
-        "owner_org_key": "FIX-ME",
-        "image_name": "ghcr.io/getdoover/shelly-interface:main",
-        "container_registry_profile_key": "FIX-ME",
+        "owner_org_key": "",
+        "image_name": "ghcr.io/getdoover/shelly_interface:main",
+        "container_registry_profile_key": "",
         "build_args": "--platform linux/amd64,linux/arm64",
+        "lambda_config": {},
+        "organisation_id": null,
+        "key": null,
+        "owner_org_id": null,
+        "code_repo_id": null,
+        "container_registry_profile_id": null,
+        "repo_branch": "main",
+        "icon_url": "https://raw.githubusercontent.com/getdoover/shelly-interface/main/assets/icon.png",
+        "staging_config": {},
+        "export_config_command": null,
+        "run_command": null,
+        "lambda_arn": null,
         "config_schema": {
             "$schema": "https://json-schema.org/draft/2020-12/schema",
             "$id": "",
             "title": "Application Config",
             "type": "object",
             "properties": {
-                "digital_outputs_enabled": {
-                    "title": "Digital Outputs Enabled",
-                    "x-name": "digital_outputs_enabled",
+                "devices": {
+                    "title": "Devices",
+                    "x-name": "devices",
                     "x-hidden": false,
-                    "type": "boolean",
-                    "default": true
+                    "type": "array",
+                    "description": "List of Shelly devices to manage",
+                    "items": {
+                        "title": "Device",
+                        "x-name": "device",
+                        "x-hidden": false,
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "title": "Name",
+                                "x-name": "name",
+                                "x-hidden": false,
+                                "type": "string",
+                                "description": "Friendly name for the device (used in tag names)"
+                            },
+                            "host": {
+                                "title": "Host",
+                                "x-name": "host",
+                                "x-hidden": false,
+                                "type": "string",
+                                "description": "IP address or hostname of the Shelly device"
+                            },
+                            "auth_user": {
+                                "title": "Auth User",
+                                "x-name": "auth_user",
+                                "x-hidden": false,
+                                "type": "string",
+                                "description": "Username for HTTP auth (if device auth is enabled)",
+                                "default": ""
+                            },
+                            "auth_password": {
+                                "title": "Auth Password",
+                                "x-name": "auth_password",
+                                "x-hidden": false,
+                                "type": "string",
+                                "description": "Password for HTTP auth (if device auth is enabled)",
+                                "default": ""
+                            },
+                            "components": {
+                                "title": "Components",
+                                "x-name": "components",
+                                "x-hidden": false,
+                                "type": "array",
+                                "description": "Specific components to monitor/control (auto-detected if empty)",
+                                "items": {
+                                    "title": "Component",
+                                    "x-name": "component",
+                                    "x-hidden": false,
+                                    "type": "object",
+                                    "properties": {
+                                        "type": {
+                                            "enum": [
+                                                "switch",
+                                                "input",
+                                                "cover",
+                                                "light"
+                                            ],
+                                            "title": "Type",
+                                            "x-name": "type",
+                                            "x-hidden": false,
+                                            "type": "string",
+                                            "description": "Component type",
+                                            "default": "switch"
+                                        },
+                                        "id": {
+                                            "title": "ID",
+                                            "x-name": "id",
+                                            "x-hidden": false,
+                                            "type": "integer",
+                                            "description": "Component instance ID on the device",
+                                            "default": 0
+                                        },
+                                        "alias": {
+                                            "title": "Alias",
+                                            "x-name": "alias",
+                                            "x-hidden": false,
+                                            "type": "string",
+                                            "description": "Custom alias for this component (used in tag names if set)",
+                                            "default": ""
+                                        }
+                                    },
+                                    "additionalElements": true,
+                                    "required": []
+                                }
+                            }
+                        },
+                        "additionalElements": true,
+                        "required": [
+                            "name",
+                            "host",
+                            "components"
+                        ]
+                    }
                 },
-                "a_funny_message": {
-                    "title": "A Funny Message",
-                    "x-name": "a_funny_message",
+                "poll_interval": {
+                    "title": "Poll Interval",
+                    "x-name": "poll_interval",
                     "x-hidden": false,
-                    "type": "string"
+                    "type": "number",
+                    "description": "Seconds between polling each device for status updates",
+                    "default": 5.0
                 },
-                "simulator_app_key": {
-                    "format": "doover-application",
-                    "title": "Simulator App Key",
-                    "x-name": "simulator_app_key",
+                "command_tag_prefix": {
+                    "title": "Command Tag Prefix",
+                    "x-name": "command_tag_prefix",
                     "x-hidden": false,
                     "type": "string",
-                    "description": "The app key for the simulator"
+                    "description": "Prefix for command tags that other apps write to trigger actions",
+                    "default": "cmd"
+                },
+                "status_tag_prefix": {
+                    "title": "Status Tag Prefix",
+                    "x-name": "status_tag_prefix",
+                    "x-hidden": false,
+                    "type": "string",
+                    "description": "Prefix for status tags published by this app",
+                    "default": "status"
+                },
+                "publish_power_data": {
+                    "title": "Publish Power Data",
+                    "x-name": "publish_power_data",
+                    "x-hidden": false,
+                    "type": "boolean",
+                    "description": "Whether to publish power metrics to a data channel for logging",
+                    "default": true
+                },
+                "power_publish_interval": {
+                    "title": "Power Publish Interval",
+                    "x-name": "power_publish_interval",
+                    "x-hidden": false,
+                    "type": "number",
+                    "description": "Minimum seconds between power data channel publishes",
+                    "default": 60.0
+                },
+                "connection_timeout": {
+                    "title": "Connection Timeout",
+                    "x-name": "connection_timeout",
+                    "x-hidden": false,
+                    "type": "number",
+                    "description": "HTTP request timeout in seconds per device",
+                    "default": 5.0
+                },
+                "retry_count": {
+                    "title": "Retry Count",
+                    "x-name": "retry_count",
+                    "x-hidden": false,
+                    "type": "integer",
+                    "description": "Number of retries on failed device communication",
+                    "default": 3
+                },
+                "auto_detect_components": {
+                    "title": "Auto Detect Components",
+                    "x-name": "auto_detect_components",
+                    "x-hidden": false,
+                    "type": "boolean",
+                    "description": "Auto-detect device components on startup via device info API",
+                    "default": true
                 }
             },
             "additionalElements": true,
             "required": [
-                "a_funny_message",
-                "simulator_app_key"
+                "devices"
             ]
         },
-        "organisation_id": "FIX-ME"
+        "id": "146373887775526920",
+        "banner_url": null
     }
 }

@@ -1,6 +1,25 @@
 {
-    "simulator_app_key": "sim_app_key",
-    "digital_input_count": 1,
-    "digital_output_count": 2,
-    "a_funny_message": "yeeha"
+    "devices": [
+        {
+            "name": "test_relay",
+            "host": "192.168.1.100",
+            "auth_user": "",
+            "auth_password": "",
+            "components": [
+                {
+                    "type": "switch",
+                    "id": 0,
+                    "alias": ""
+                }
+            ]
+        }
+    ],
+    "poll_interval": 5.0,
+    "command_tag_prefix": "cmd",
+    "status_tag_prefix": "status",
+    "publish_power_data": true,
+    "power_publish_interval": 60.0,
+    "connection_timeout": 5.0,
+    "retry_count": 3,
+    "auto_detect_components": true
 }
